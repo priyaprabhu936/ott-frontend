@@ -1,8 +1,7 @@
 import axios from "axios";
 
-// உங்க backend Render URL
 const API = axios.create({
-  baseURL: "https://ott-backend-imh7.onrender.com/api",
+  baseURL: "https://ott-backend-imh7.onrender.com/api",  // un backend URL
 });
 
 export const getMovies = () => API.get("/movies");
