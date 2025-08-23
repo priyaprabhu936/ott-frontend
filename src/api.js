@@ -1,15 +1,12 @@
 import axios from "axios";
 
-// Backend URL — இதை உங்க Render URL-ஆக மாற்றிக்கோங்க
-// Example: https://ott-backend-imh7.onrender.com
-const BASE_URL = "https://ott-backend-imh7.onrender.com";
-
+// உங்க backend Render URL
 const API = axios.create({
-  baseURL: BASE_URL
+  baseURL: "https://ott-backend-imh7.onrender.com/api",
 });
 
-export default API;
+export const getMovies = () => API.get("/movies");
+export const addMovie = (movieData) => API.post("/movies", movieData);
+export const deleteMovie = (id) => API.delete(`/movies/${id}`);
 
-// NOTE:
-// உங்கள் backend "/api/movies" என்றால், components-ல் endpoint-ஐ "/api/movies" என்று கொடுங்க.
-// இந்த project இப்போ "/movies" பயன்படுத்துகிறது (உங்க current backend போல).
+export default API;
