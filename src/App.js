@@ -82,7 +82,7 @@ function App() {
       <div>
         {movies.map((movie) => (
           <div
-            key={movie._id}
+            key={movie._id || movie.id}
             style={{
               border: "1px solid #ccc",
               padding: "10px",
@@ -99,7 +99,9 @@ function App() {
               />
             )}
             <br />
-            <button onClick={() => handleDelete(movie._id)}>Delete</button>
+            <button onClick={() => handleDelete(movie._id || movie.id)}>
+              Delete
+            </button>
           </div>
         ))}
       </div>
