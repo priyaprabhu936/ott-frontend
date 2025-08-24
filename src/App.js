@@ -1,29 +1,21 @@
-import { useState } from "react";
-import Movies from "./Movies";
-import Login from "./Login";
+import React from "react";
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import MovieList from "./components/MovieList";
+import AddMovie from "./components/AddMovie";
+import Register from "./components/Register";
 
 function App() {
-  // Check if token already stored in browser
-  const [auth, setAuth] = useState(!!localStorage.getItem("token"));
-
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    setAuth(false);
-  };
-
   return (
-    <div style={{ padding: "20px" }}>
-      <h1>🎬 OTT App</h1>
-
-      {auth ? (
-        <div>
-          <button onClick={handleLogout}>Logout</button>
-          <Movies />
-        </div>
-      ) : (
-        <Login setAuth={setAuth} />
-      )}
-    </div>
+    <Router>
+      <div>
+        <h1>OTT Platform</h1>
+        <Routes>
+          <Route path="/" element={<MovieList />} />
+          <Route path="/add" element={<AddMovie />} />
+          <Route path="/register" element={<Register />} />
+        </Routes>
+      </div>
+    </Router>
   );
 }
 
