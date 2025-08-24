@@ -1,9 +1,20 @@
 import axios from "axios";
 
-// Backend base URL
+// Your backend URL
 const API = axios.create({
   baseURL: "https://ott-backend-imh7.onrender.com/api",
 });
+
+// Attach token if present
+API.interceptors.request.use((config) => {
+  const token = localStorage.getItem("token");
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
+
+// Auth
+export const register = (payload) => API.post("/auth/register", payload);
+export const login = (payload) => API.post("/auth/login", payload);
 
 // Movies
 export const getMovies = () => API.get("/movies");
