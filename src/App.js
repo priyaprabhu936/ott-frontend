@@ -2,8 +2,7 @@ import React, { useEffect, useState } from "react";
 import { getMovies, addMovie, updateMovie, deleteMovie, login, register } from "./api";
 
 function App() {
-  // auth state
-  const [authMode, setAuthMode] = useState("login"); // login | register
+  const [authMode, setAuthMode] = useState("login");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -11,7 +10,6 @@ function App() {
     try { return JSON.parse(localStorage.getItem("user") || "null"); } catch { return null; }
   });
 
-  // movies state
   const [movies, setMovies] = useState([]);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -26,34 +24,29 @@ function App() {
   const isAdmin = !!user?.isAdmin;
 
   useEffect(() => { fetchMovies(); }, []);
-
   const fetchMovies = async () => {
     try {
       setLoading(true);
       const { data } = await getMovies();
       setMovies(data);
-    } catch (e) {
-      console.error("Fetch failed:", e?.message || e);
     } finally { setLoading(false); }
   };
 
   const resetForm = () => {
-    setTitle(""); setDescription(""); setPoster("");
-    setRating(3); setCategory("General"); setEditId(null);
+    setTitle(""); setDescription(""); setPoster(""); setRating(3);
+    setCategory("General"); setEditId(null);
   };
 
   const handleSave = async (e) => {
     e.preventDefault();
+    const payload = { title, description, poster, rating: Number(rating), category };
     try {
       setSaving(true);
-      const payload = { title, description, poster, rating: Number(rating), category };
       if (editId) await updateMovie(editId, payload);
       else await addMovie(payload);
-      resetForm();
-      fetchMovies();
-    } catch (e) {
-      alert(isAdmin ? "Save failed (check console)" : "Admin login required");
-      console.error(e);
+      resetForm(); fetchMovies();
+    } catch {
+      alert(isAdmin ? "Save failed" : "Admin login required");
     } finally { setSaving(false); }
   };
 
@@ -66,25 +59,23 @@ function App() {
 
   const handleDelete = async (id) => {
     if (!window.confirm("Delete this movie?")) return;
-    try { await deleteMovie(id); fetchMovies(); }
-    catch (e) { alert(isAdmin ? "Delete failed" : "Admin login required"); }
+    try { await deleteMovie(id); fetchMovies(); } catch { alert("Delete failed"); }
   };
 
   const doAuth = async (e) => {
     e.preventDefault();
+    const body = authMode === "login" ? { email, password } : { name, email, password };
+    const fn = authMode === "login" ? login : register;
     try {
-      const fn = authMode === "login" ? login : register;
-      const body = authMode === "login" ? { email, password } : { name, email, password };
       const { data } = await fn(body);
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
       setUser(data.user);
       setName(""); setEmail(""); setPassword("");
       fetchMovies();
-      alert(`Welcome ${data.user.name}! ${data.user.isAdmin ? "You are admin ✅" : ""}`);
-    } catch (e) {
+      alert(`Welcome ${data.user.name}! ${data.user.isAdmin ? "You are Admin ✅" : ""}`);
+    } catch {
       alert("Auth failed. Check details.");
-      console.error(e);
     }
   };
 
@@ -94,38 +85,30 @@ function App() {
     setUser(null);
   };
 
-  const filtered = movies.filter((m) =>
-    (m.title || "").toLowerCase().includes(search.toLowerCase())
-  );
-
   return (
     <div style={{ padding: 24, fontFamily: "Arial, sans-serif", background: "#f5f6f8", minHeight: "100vh" }}>
       <h1 style={{ textAlign: "center", marginBottom: 12 }}>🎬 OTT Movies</h1>
 
-      {/* top bar */}
       <div style={{ maxWidth: 1100, margin: "0 auto 12px", display: "flex", gap: 12, alignItems: "center", justifyContent: "space-between" }}>
         <input
           type="text" placeholder="🔍 Search by title…"
           value={search} onChange={(e) => setSearch(e.target.value)}
           style={{ padding: 10, flex: 1, borderRadius: 8, border: "1px solid #ddd" }}
         />
-        {user ? (
+        {user && (
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
             <span style={{ fontSize: 14, color: "#333" }}>Hello, <b>{user.name}</b> {user.isAdmin ? "(Admin)" : ""}</span>
             <button onClick={logoutNow} style={{ padding: "8px 12px", border: "1px solid #ddd", borderRadius: 8, background: "white" }}>
               Logout
             </button>
           </div>
-        ) : null}
+        )}
       </div>
 
-      {/* auth card */}
       {!user && (
-        <form
-          onSubmit={doAuth}
+        <form onSubmit={doAuth}
           style={{ maxWidth: 480, margin: "0 auto 20px", background: "white", padding: 16,
-                   borderRadius: 12, border: "1px solid #eee", boxShadow: "0 4px 12px rgba(0,0,0,0.05)" }}
-        >
+                   borderRadius: 12, border: "1px solid #eee", boxShadow: "0 4px 12px rgba(0,0,0,0.05)" }}>
           <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
             <button type="button" onClick={() => setAuthMode("login")}
               style={{ flex: 1, padding: 10, borderRadius: 8, border: "1px solid #ddd",
@@ -140,38 +123,25 @@ function App() {
           </div>
 
           {authMode === "register" && (
-            <input
-              type="text" placeholder="Your Name" value={name} onChange={(e) => setName(e.target.value)} required
-              style={{ padding: 10, width: "100%", borderRadius: 8, border: "1px solid #ddd", marginBottom: 8 }}
-            />
+            <input type="text" placeholder="Your Name" value={name} onChange={(e) => setName(e.target.value)} required
+                   style={{ padding: 10, width: "100%", borderRadius: 8, border: "1px solid #ddd", marginBottom: 8 }} />
           )}
-          <input
-            type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required
-            style={{ padding: 10, width: "100%", borderRadius: 8, border: "1px solid #ddd", marginBottom: 8 }}
-          />
-          <input
-            type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required
-            style={{ padding: 10, width: "100%", borderRadius: 8, border: "1px solid #ddd", marginBottom: 12 }}
-          />
-          <button type="submit"
-            style={{ padding: 10, width: "100%", border: "none", borderRadius: 8, background: "#007bff", color: "white", fontWeight: "bold" }}>
+          <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required
+                 style={{ padding: 10, width: "100%", borderRadius: 8, border: "1px solid #ddd", marginBottom: 8 }} />
+          <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required
+                 style={{ padding: 10, width: "100%", borderRadius: 8, border: "1px solid #ddd", marginBottom: 12 }} />
+          <button type="submit" style={{ padding: 10, width: "100%", border: "none", borderRadius: 8, background: "#007bff", color: "white", fontWeight: "bold" }}>
             {authMode === "login" ? "Login" : "Create Account"}
           </button>
-
-          <div style={{ fontSize: 12, color: "#666", marginTop: 8 }}>
-            Tip: First registered user becomes <b>Admin</b>.
-          </div>
+          <div style={{ fontSize: 12, color: "#666", marginTop: 8 }}>Tip: First registered user becomes <b>Admin</b>.</div>
         </form>
       )}
 
-      {/* admin form */}
-      {user && user.isAdmin && (
-        <form
-          onSubmit={handleSave}
+      {user?.isAdmin && (
+        <form onSubmit={handleSave}
           style={{ maxWidth: 720, margin: "0 auto 24px", display: "grid", gap: 10, gridTemplateColumns: "1fr 1fr",
                    background: "white", padding: 16, borderRadius: 12, border: "1px solid #eee",
-                   boxShadow: "0 4px 12px rgba(0,0,0,0.05)" }}
-        >
+                   boxShadow: "0 4px 12px rgba(0,0,0,0.05)" }}>
           <input type="text" placeholder="Movie Title" value={title} onChange={(e) => setTitle(e.target.value)} required
                  style={{ padding: 10, borderRadius: 8, border: "1px solid #ddd", gridColumn: "1 / span 2" }} />
           <input type="text" placeholder="Description" value={description} onChange={(e) => setDescription(e.target.value)} required
@@ -189,7 +159,7 @@ function App() {
               {saving ? (editId ? "Updating..." : "Adding...") : (editId ? "✏ Update Movie" : "➕ Add Movie")}
             </button>
             {editId && (
-              <button type="button" onClick={resetForm}
+              <button type="button" onClick={() => { setEditId(null); resetForm(); }}
                       style={{ padding: "10px 14px", border: "1px solid #ccc", borderRadius: 8, background: "white" }}>
                 ✨ Cancel Edit
               </button>
@@ -197,10 +167,6 @@ function App() {
           </div>
         </form>
       )}
-
-      {/* list */}
-      {loading && <div style={{ textAlign: "center", color: "#666" }}>Loading…</div>}
-      {!loading && movies.length === 0 && <div style={{ textAlign: "center", color: "#666" }}>No movies yet.</div>}
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 16, maxWidth: 1100, margin: "0 auto" }}>
         {movies
@@ -240,10 +206,6 @@ function App() {
             </div>
           </div>
         ))}
-      </div>
-
-      <div style={{ textAlign: "center", color: "#888", fontSize: 12, marginTop: 24 }}>
-        Built with React • Auth + Admin protected
       </div>
     </div>
   );
