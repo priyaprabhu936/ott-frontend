@@ -1,63 +1,84 @@
 import React, { useState } from "react";
 
-const Register = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+function Register() {
+  const [form, setForm] = useState({
+    username: "",
+    email: "",
+    password: "",
+  });
 
-  const handleRegister = async (e) => {
+  const [message, setMessage] = useState("");
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-
     try {
-      const res = await fetch("https://<your-backend-url>/api/auth/register", {
+      const res = await fetch("https://ott-backend-2.onrender.com/api/auth/register", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
       });
 
       const data = await res.json();
 
       if (res.ok) {
-        alert("✅ User registered successfully! Now login.");
+        setMessage("✅ Registration successful! You can login now.");
+        setForm({ username: "", email: "", password: "" }); // clear form
       } else {
-        alert("❌ " + (data.message || "Registration failed"));
+        setMessage("❌ " + (data.message || "Registration failed"));
       }
-    } catch (error) {
-      console.error(error);
-      alert("⚠️ Something went wrong!");
+    } catch (err) {
+      console.error(err);
+      setMessage("❌ Something went wrong");
     }
   };
 
   return (
-    <div className="p-4 max-w-md mx-auto bg-white rounded-2xl shadow-md">
-      <h2 className="text-2xl font-bold mb-4 text-center">Register</h2>
-      <form onSubmit={handleRegister} className="flex flex-col gap-3">
-        <input
-          type="email"
-          placeholder="Enter email"
-          className="p-2 border rounded-md"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-        <input
-          type="password"
-          placeholder="Enter password"
-          className="p-2 border rounded-md"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-        <button
-          type="submit"
-          className="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-md"
-        >
-          Register
-        </button>
+    <div style={{ maxWidth: "400px", margin: "auto" }}>
+      <h2>Register</h2>
+      <form onSubmit={handleSubmit}>
+        <div>
+          <label>Username:</label>
+          <input
+            type="text"
+            name="username"
+            value={form.username}
+            onChange={handleChange}
+            required
+          />
+        </div>
+
+        <div>
+          <label>Email:</label>
+          <input
+            type="email"
+            name="email"
+            value={form.email}
+            onChange={handleChange}
+            required
+          />
+        </div>
+
+        <div>
+          <label>Password:</label>
+          <input
+            type="password"
+            name="password"
+            value={form.password}
+            onChange={handleChange}
+            required
+          />
+        </div>
+
+        <button type="submit">Register</button>
       </form>
+
+      {message && <p>{message}</p>}
     </div>
   );
-};
+}
 
 export default Register;
