@@ -1,62 +1,27 @@
-// src/components/MovieList.js
 import React, { useEffect, useState } from "react";
-import api from "../api";
-import MovieCard from "./MovieCard";
-import { Link } from "react-router-dom";
+import API_URL from "../api";
+import "./MovieGrid.css";
 
-export default function MovieList() {
+function MovieList() {
   const [movies, setMovies] = useState([]);
-  const token = localStorage.getItem("token");
 
-  const load = async () => {
-    try {
-      const { data } = await api.get("/api/movies");
-      setMovies(data || []);
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
-  const handleDelete = async (id) => {
-    if (!window.confirm("Delete this movie?")) return;
-    try {
-      await api.delete(`/api/movies/${id}`);
-      setMovies((m) => m.filter((x) => x._id !== id));
-    } catch (e) {
-      alert("Delete failed");
-    }
-  };
-
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    fetch(`${API_URL}/movies`)
+      .then((res) => res.json())
+      .then((data) => setMovies(data))
+      .catch((err) => console.error("Error fetching movies:", err));
+  }, []);
 
   return (
-    <div className="page">
-      <div className="topbar">
-        <h1>OTT Platform</h1>
-        <div className="actions">
-          {token ? (
-            <>
-              <Link to="/add" className="btn">+ Add Movie</Link>
-              <button className="btn"
-                onClick={() => { localStorage.removeItem("token"); window.location.reload(); }}>
-                Logout
-              </button>
-            </>
-          ) : (
-            <>
-              <Link to="/login" className="btn">Login</Link>
-              <Link to="/register" className="btn">Register</Link>
-            </>
-          )}
+    <div className="movie-grid">
+      {movies.map((movie) => (
+        <div className="movie-card" key={movie._id}>
+          <img src={movie.poster} alt={movie.title} />
+          <h3>{movie.title}</h3>
         </div>
-      </div>
-
-      <h2>🎬 Movies</h2>
-      <div className="grid">
-        {movies.map((m) => (
-          <MovieCard key={m._id || m.title} movie={m} onDelete={token ? handleDelete : undefined} />
-        ))}
-      </div>
+      ))}
     </div>
   );
 }
+
+export default MovieList;
