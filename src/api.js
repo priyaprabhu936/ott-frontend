@@ -1,23 +1,16 @@
+// src/api.js
 import axios from "axios";
 
-// Backend URL
-const API = axios.create({
-  baseURL: "https://ott-backend-imh7.onrender.com/api",
+const api = axios.create({
+  baseURL: process.env.REACT_APP_API_URL || "https://ott-backend-2.onrender.com",
+  headers: { "Content-Type": "application/json" },
 });
 
-// 🔐 If token exists, attach automatically
-API.interceptors.request.use((req) => {
+// Attach token automatically
+api.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
-  if (token) {
-    req.headers.Authorization = `Bearer ${token}`;
-  }
-  return req;
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
 });
 
-export const getMovies = () => API.get("/movies");
-export const addMovie = (movieData) => API.post("/movies", movieData);
-export const deleteMovie = (id) => API.delete(`/movies/${id}`);
-export const registerUser = (userData) => API.post("/register", userData);
-export const loginUser = (userData) => API.post("/login", userData);
-
-export default API;
+export default api;
