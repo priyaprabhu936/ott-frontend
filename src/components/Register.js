@@ -1,56 +1,57 @@
+// src/components/Register.js
 import React, { useState } from "react";
-import axios from "axios";
+import api from "../api";
 
-function Register() {
-  const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [message, setMessage] = useState("");
+export default function Register() {
+  const [form, setForm] = useState({ username: "", email: "", password: "" });
+  const [msg, setMsg] = useState("");
 
-  const handleRegister = async (e) => {
+  const onChange = (e) =>
+    setForm({ ...form, [e.target.name]: e.target.value });
+
+  const onSubmit = async (e) => {
     e.preventDefault();
+    setMsg("");
     try {
-      const res = await axios.post(
-        "https://ott-backend-2.onrender.com/api/auth/register",
-        { username, email, password }
-      );
-      setMessage("✅ " + res.data.message);
+      const { data } = await api.post("/api/auth/register", form);
+      setMsg(data?.message || "✅ Registration successful! Now login.");
+      setForm({ username: "", email: "", password: "" });
     } catch (err) {
-      console.error("Registration Error:", err);
-      setMessage("❌ Registration failed. Try again.");
+      setMsg("❌ " + (err.response?.data?.message || "Registration failed"));
     }
   };
 
   return (
-    <div>
+    <div className="container">
       <h2>Register</h2>
-      <form onSubmit={handleRegister}>
+      <form onSubmit={onSubmit} className="form">
         <input
           type="text"
+          name="username"
           placeholder="Username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
+          value={form.username}
+          onChange={onChange}
+          required
         />
-        <br />
         <input
           type="email"
+          name="email"
           placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          value={form.email}
+          onChange={onChange}
+          required
         />
-        <br />
         <input
           type="password"
+          name="password"
           placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          value={form.password}
+          onChange={onChange}
+          required
         />
-        <br />
-        <button type="submit">Register</button>
+        <button type="submit">Create account</button>
       </form>
-      <p>{message}</p>
+      {msg && <p>{msg}</p>}
     </div>
   );
 }
-
-export default Register;
