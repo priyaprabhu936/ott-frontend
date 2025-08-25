@@ -1,51 +1,40 @@
+// src/components/AddMovie.js
 import React, { useState } from "react";
-import API from "../api";
+import api from "../api";
 
-function AddMovie() {
-  const [title, setTitle] = useState("");
-  const [year, setYear] = useState("");
+export default function AddMovie() {
+  const [form, setForm] = useState({
+    title: "", poster: "", year: "", genre: "", description: ""
+  });
+  const [msg, setMsg] = useState("");
 
-  const handleSubmit = async (e) => {
+  const onChange = (e) =>
+    setForm({ ...form, [e.target.name]: e.target.value });
+
+  const onSubmit = async (e) => {
     e.preventDefault();
-    if (!title) return alert("Title required");
+    setMsg("");
     try {
-      const payload = { title };
-      if (year) payload.year = Number(year);
-      await API.post("/movies", payload);
-      alert("Movie added!");
-      setTitle("");
-      setYear("");
+      await api.post("/api/movies", form);
+      setMsg("✅ Movie added!");
+      setForm({ title: "", poster: "", year: "", genre: "", description: "" });
     } catch (err) {
-      console.error("Add movie error:", err);
-      alert("Failed to add movie");
+      setMsg("❌ " + (err.response?.data?.message || "Add failed"));
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} style={{ marginTop: 16, marginBottom: 16 }}>
-      <h3>Add Movie</h3>
-      <div style={{ marginBottom: 8 }}>
-        <input
-          placeholder="Title"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          style={{ padding: 8, width: 240 }}
-        />
-      </div>
-      <div style={{ marginBottom: 8 }}>
-        <input
-          placeholder="Year (optional)"
-          value={year}
-          onChange={(e) => setYear(e.target.value)}
-          style={{ padding: 8, width: 240 }}
-          inputMode="numeric"
-        />
-      </div>
-      <button type="submit" style={{ padding: "8px 16px" }}>
-        Save
-      </button>
-    </form>
+    <div className="container">
+      <h2>Add Movie</h2>
+      <form onSubmit={onSubmit} className="form">
+        <input name="title" placeholder="Title" value={form.title} onChange={onChange} required />
+        <input name="poster" placeholder="Poster URL" value={form.poster} onChange={onChange} required />
+        <input name="year" placeholder="Year" value={form.year} onChange={onChange} />
+        <input name="genre" placeholder="Genre" value={form.genre} onChange={onChange} />
+        <textarea name="description" placeholder="Description" value={form.description} onChange={onChange} />
+        <button type="submit">Save</button>
+      </form>
+      {msg && <p>{msg}</p>}
+    </div>
   );
 }
-
-export default AddMovie;
